@@ -2,13 +2,13 @@ Program main
 
         Implicit none
 
-        double precision :: tau, dt, T, R, tmax, var1, var2
+        double precision :: tau, dt, T, R, tmax
         integer, parameter :: Np=500000
-        double precision, parameter :: PI2= 8*atan(1.)
-        double precision, dimension(Np) :: Ep, sigma
+        double precision, parameter :: PI= 4*atan(1.)
+        double precision, dimension(Np) :: Ep
         integer :: i,j
         !double precision, dimension(1000000) :: test
-        double precision :: moy, start, finish
+        double precision :: moy, start, finish, sigma
         double precision, dimension(:), allocatable :: Tint
 
         ! Déclaration des paramètres
@@ -18,8 +18,7 @@ Program main
         T = 300
         R = 280
         tmax = 5
-        var1 = 1/(1+2*dt/tau)
-        var2 = R*T*dt/tau
+
 
         call random_number(Ep)
         ! Renvoie un nombre aléatoire entre 0 et 1
@@ -40,14 +39,14 @@ Program main
         open(unit=11, file="Tint.dat")
         Write(11,*) 0 , Tint(1)
 
+        Print*, "Tint à l'état initial = ", Tint(1), " moyenne = ", moy
+
 
 
         Do i = 1,floor(tmax/dt)
-            call gaussienne2(sigma,PI2)
-
                 Do j = 1,size(Ep)
-
-                        Ep(j) = var1*(Ep(j)+var2*(1+sigma(j)**2)+2*sqrt(var2*Ep(j))*sigma(j))
+                        call gaussienne2(sigma,PI)
+                        Ep(j) = (1/(1+2*dt/tau))*(Ep(j)+(R*T*dt/tau)*(1+sigma**2)+2*sqrt((dt/tau)*R*T*Ep(j))*sigma)
                 End do
                 moy = 0
                 Do j=1,size(Ep)
@@ -139,28 +138,15 @@ contains
 
         end subroutine
 
-        subroutine gaussienne2(Z, PI2)
+        subroutine gaussienne2(Z0, PI)
                 implicit none
                 double precision :: U1, U2
-                double precision, intent(in):: PI2
-                double precision, dimension(:), intent(inout) :: Z
-                integer::k
+                double precision, intent(in):: PI
+                double precision, intent(out) :: Z0
 
-                k=1
-
-                do while (k<size(Z))
-                  call random_number(U1)
-                  call random_number(U2)
-                  !Z0 = sqrt(-2*log(U1))*cos(2*PI*U2) ! >NO<
-            		  Z(k) = sqrt(-2*log(U1))*cos(PI2*U2)
-                  Z(k+1) = sqrt(-2*log(U1))*sin(PI2*U2)
-                  k=k+2
-                end do
-                if (k==size(Z)) then
-                  call random_number(U1)
-                  call random_number(U2)
-                  Z(k)= sqrt(-2*log(U1))*cos(PI2*U2)
-                end if
+                call random_number(U1)
+                call random_number(U2)
+            		Z0 = sqrt(-2*log(U1))*cos(2*PI*U2)
 
         end subroutine
 
@@ -188,7 +174,6 @@ contains
                         do j = 1, 100
                                 if ((Z(i) > Emin+(j-1)*palier) .and. (Z(i)<Emin+(j)*palier)) then
                                         C(j) = C(j) + 1
-                                        exit
                                 end if
                         end do
                 end do
