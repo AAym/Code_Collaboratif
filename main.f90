@@ -2,13 +2,13 @@ Program main
 
 	Implicit none
 
-	double precision :: tau, dt, T, R, time, tmax
+	double precision :: tau, dt, T, R, tmax
 	integer, parameter :: Np=500000
 	double precision, parameter :: PI= 4*atan(1.)
 	double precision, dimension(Np) :: Ep
 	integer :: i,j
 	!double precision, dimension(1000000) :: test
-	double precision :: var, moy, start, finish, sigma
+	double precision :: moy, start, finish, sigma
 	double precision, dimension(:), allocatable :: Tint
 
 	! Déclaration des paramètres
@@ -153,11 +153,11 @@ contains
 
 	subroutine histogramme(name_file,Z)
 		implicit none
-		character(len=30), intent(in) :: name_file
+		character(len=11), intent(in) :: name_file
 		double precision, dimension(:), intent(in) :: Z
 		integer :: i,j
 		integer, dimension(100) :: C
-		double precision  :: p, Emax, Emin, palier
+		double precision  :: Emax, Emin, palier
 
 		C=0
 		Emin = Z(1)
