@@ -2,15 +2,15 @@ Program main
 
 Implicit none
 
-real :: tau, dt, T, R, time, tmax
-integer, parameter :: Np=1000
-real, parameter :: PI= 4*atan(1.)
-real, dimension(Np) :: Ep
+double precision :: tau, dt, T, R, time, tmax
+integer, parameter :: Np=500000
+double precision, parameter :: PI= 4*atan(1.)
+double precision, dimension(Np) :: Ep
 integer :: i,j
 character(len=30) :: name_file
-!real, dimension(1000000) :: test 
-real :: var, moy, start, finish, sigma
-real, dimension(:), allocatable :: Tint
+!double precision, dimension(1000000) :: test
+double precision :: var, moy, start, finish, sigma
+double precision, dimension(:), allocatable :: Tint
 
 ! Déclaration des paramètres
 
@@ -19,6 +19,7 @@ dt = 0.01
 T = 300
 R = 280
 tmax = 5
+name_file = "histogramme"
 
 call random_number(Ep)
 ! Renvoie un nombre aléatoire entre 0 et 1
@@ -52,6 +53,8 @@ Do i = 1,floor(tmax/dt)
 	Tint(i+1) = moy/R
 	Print*, "Tint(",i*dt,") = ", Tint(i+1)
 End do
+
+call histogramme(name_file,Ep)
 
 !-----------------------------------------------------------------------------------------------------------------------------
 
@@ -107,15 +110,15 @@ contains
 
 subroutine gaussienne1(Z0)
 	implicit none
-	real ::  x, y, s
-	real, intent(out) :: Z0
+	double precision ::  x, y, s
+	double precision, intent(out) :: Z0
 
 	call random_number(x)
 	call random_number(y)
 	x = x*2-1
 	y = y*2-1
 	s = x**2 + y**2
-	do while ((s == 0) .or. (s >= 1)) 
+	do while ((s == 0) .or. (s >= 1))
 		call random_number(x)
 		call random_number(y)
 		x = x*2-1
@@ -128,9 +131,9 @@ end subroutine
 
 subroutine gaussienne2(Z0, PI)
 	implicit none
-	real :: U1, U2
-	real, intent(in):: PI
-	real, intent(out) :: Z0
+	double precision :: U1, U2
+	double precision, intent(in):: PI
+	double precision, intent(out) :: Z0
 
 	call random_number(U1)
 	call random_number(U2)
@@ -142,28 +145,39 @@ end subroutine
 subroutine histogramme(name_file,Z)
 	implicit none
 	character(len=30), intent(in) :: name_file
-	real, dimension(:), intent(in) :: Z
+	double precision, dimension(:), intent(in) :: Z
 	integer :: i,j
-	integer, dimension(1000) :: C
-	real  :: p
+	integer, dimension(100) :: C
+	double precision  :: p, Emax, Emin, palier
 
 	C=0
-	
+	Emin = Z(1)
+	Emax = Z(1)
 	Do i=1, size(Z)
-		p = Z(i)*100
-		j = floor(p)+501
-		if ((j > 0) .and. (j<1000)) then 		
-			C(j) = C(j)+1
+		if (Z(i)>Emax) then
+			Emax = Z(i)
 		end if
-	end do	
+		if (Z(i)<Emin) then
+			Emin = Z(i)
+		end if
+	end do
+	palier = (Emax - Emin)/100
+	do i=1, size(Z)
+		do j = 1, 100
+			if ((Z(i) > Emin+(j-1)*palier) .and. (Z(i)<Emin+(j)*palier)) then
+				C(j) = C(j) + 1
+			end if
+		end do
+	end do
 
 	open(unit=10, file=name_file)
 	Do i=1,size(C)
-		
-		Write(10,*) i, C(i)
+
+		Write(10,*) (i-1)*palier+Emin, C(i)
+		Write(10,*) (i-1)*palier+Emin+palier*0.99, C(i)
 	end do
 	close(10)
-		
+
 
 end subroutine
 
